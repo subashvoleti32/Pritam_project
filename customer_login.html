@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Customer Login Page</h1>
+    <label for="countryCode">Country Code:</label>
+    <input type="text" id="countryCode" name="countryCode" value="+91" readonly><br>
+    <label for="phoneNumber">Phone Number:</label>
+    <input type="tel" id="phoneNumber" name="phoneNumber" required><br>
+    <button onclick="redirectToOTPPage()">Get OTP</button>
+    <a href="home.html" class="home-link">Home</a>
+    <script src="get_otp_button.js"></script>
+</body>
+</html>
