@@ -116,3 +116,19 @@ class Bill(BillBase):
 
     class Config:
         orm_mode = True
+
+class TicketCreate(BaseModel):
+    ticketid:int
+    phone_number: int
+    customerid: int
+    staffid: int
+    ticketstatus: str
+    description: str
+
+class TicketResponse(BaseModel):
+    ticketid:int
+    phone_number: int
+    customerid: int
+    staffid: int
+    ticketstatus: str
+    description: str

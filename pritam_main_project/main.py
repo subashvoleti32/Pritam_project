@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Customer,ServiceRequest,Staff,PhoneNumber,Bill
-from schemas import CustomerCreate,CustomerResponse,ServiceRequestCreate,ServiceResponse,StaffCreate,StaffResponse,PhoneNumberResponse,BillResponseModel,PhoneNumberCreate,BillCreate
+from schemas import CustomerCreate,CustomerResponse,ServiceRequestCreate,TicketCreate,TicketResponse,ServiceResponse,StaffCreate,StaffResponse,PhoneNumberResponse,BillResponseModel,PhoneNumberCreate,BillCreate
 
 app = FastAPI()
 
@@ -56,8 +56,8 @@ def delete_customer(customer_id: int, db: Session = Depends(get_db)):
     return {f"Customer id {customer_id} is deleted successfully"}
 
 # Create
-@app.post("/service_requests/", response_model=ServiceResponse,tags=["ServiceRequests"])
-def create_service_request(service_request: ServiceRequestCreate, db: Session = Depends(get_db)):
+@app.post("/service_requests/", response_model=TicketResponse,tags=["ServiceRequests"])
+def create_service_request(service_request: TicketCreate, db: Session = Depends(get_db)):
     db_service_request = ServiceRequest(**service_request.dict())
     db.add(db_service_request)
     db.commit()
