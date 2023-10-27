@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Customer,ServiceRequest,Staff,PhoneNumber,Bill
 from schemas import CustomerCreate,CustomerResponse,ServiceRequestCreate,TicketCreate,TicketResponse,ServiceResponse,StaffCreate,StaffResponse,PhoneNumberResponse,BillResponseModel,PhoneNumberCreate,BillCreate
-
+from sqlalchemy.orm import joinedload,subqueryload
 app = FastAPI()
 
 # Dependency to get the SQLAlchemy session
@@ -70,12 +70,96 @@ async def get_service_requests(db:Session=Depends(get_db)):
     res=db.query(ServiceRequest).all()
     return res 
 #Get Customer By id
-@app.get("/service_requests/{service_request_id}", tags=["ServiceRequests"])
-def get_customer_by_id(service_request_id: int, db: Session = Depends(get_db)):
-    customer = db.query(ServiceRequest).filter(ServiceRequest.ticketid == service_request_id).first()
-    if customer is None:
-        raise HTTPException(status_code=404, detail="Ticket Not Found")
-    return customer
+# @app.get("/service_requests/{customer_id}", tags=["ServiceRequests"])
+# def get_customer_by_id(customer_id: int, db: Session = Depends(get_db)):
+#     customer = db.query(ServiceRequest).join(Customer,ServiceRequest.ticketid == customer_id).filter(Customer.customerid == customer_id).all()
+#     if customer is None:
+#         raise HTTPException(status_code=404, detail="Ticket Not Found")
+#     return customer
+
+######################################################################################
+# @app.get("/service_requests/{customer_id}", tags=["ServiceRequests"])
+# def get_customer_by_id(customer_id: int, db: Session = Depends(get_db)):
+#     customer_subquery = db.query(Customer).filter(Customer.customerid == customer_id).subquery()
+#     service_requests = db.query(ServiceRequest).join(customer_subquery, ServiceRequest.customerid == customer_subquery.c.customerid)
+#     service_requests = service_requests.all()
+#     if not service_requests:
+#         raise HTTPException(status_code=404, detail="No service requests found for the provided customer.")
+#     customer_details = db.query(Customer).filter(Customer.customerid == customer_id).first()
+#     service_requests = [request for request in service_requests]
+#     response = {
+#         "customer_details": {
+#             "customerid": customer_details.customerid,
+#             "firstname": customer_details.firstname,
+#             "lastname": customer_details.lastname,
+#             # Add more customer details as needed
+#         },
+#         "service_requests": service_requests,
+#     }
+#     return response
+###########################################################################################
+
+@app.get("/service_requests/{customer_id}", tags=["ServiceRequests"])
+def get_customer_by_id(customer_id: int, db: Session = Depends(get_db)):
+    service_requests = db.query(ServiceRequest).filter(ServiceRequest.customerid == customer_id).options(subqueryload(ServiceRequest.customer))
+    service_requests = service_requests.all()
+    if not service_requests:
+        raise HTTPException(status_code=404, detail="No service requests found for the provided customer.")
+    response = {
+        "service_requests": []
+    }
+    for request in service_requests:
+        customer_details = request.customer
+        response["service_requests"].append({
+            "ticketid": request.ticketid,
+            "customer_details": {
+                "customerid": customer_details.customerid,
+                "firstname": customer_details.firstname,
+                "lastname": customer_details.lastname,
+                # Add more customer details as needed
+            }
+        })
+    return response
+
+    # customer_subquery = db.query(Customer).filter(Customer.customerid == customer_id).subquery()
+    # service_requests = db.query(ServiceRequest).join(customer_subquery, ServiceRequest.customerid == customer_subquery.c.customerid)
+    # service_requests = service_requests.all()
+    # if not service_requests:
+    #     raise HTTPException(status_code=404, detail="No service requests found for the provided customer.")
+    # customer_details = db.query(Customer).filter(Customer.customerid == customer_id).first()
+    # service_requests = [request for request in service_requests]
+    # response = {
+    #     "customer_details": {
+    #         "customerid": customer_details.customerid,
+    #         "firstname": customer_details.firstname,
+    #         "lastname": customer_details.lastname,
+    #         # Add more customer details as needed
+    #     },
+    #     "service_requests": service_requests,
+    # }
+    # return response
+
+
+
+    # customer = db.query(ServiceRequest,Customer).join(Customer,ServiceRequest.customerid == Customer.customerid).filter(Customer.customerid == customer_id).options(joinedload(ServiceRequest.customer))
+    # service_requests=customer.all()
+    # if service_requests is None:
+    #     raise HTTPException(status_code=404, detail="Ticket Not Found")
+    # cust_details=service_requests[0].customer
+    # service_requests = [request for request in service_requests]
+    # print(service_requests)
+    # response = {
+    #     "customer_details": {
+    #         "customerid": cust_details.customerid,
+    #         "firstname": cust_details.firstname,
+    #         "lastname": cust_details.lastname,
+    #         # Add more customer details as needed
+    #     },
+    #     "service_requests": service_requests,
+    # }
+    # return response
+
+
 # Update
 @app.put("/service_requests/{ticket_id}", response_model=ServiceResponse,tags=["ServiceRequests"])
 def update_service_request(ticket_id: int, service_request: ServiceRequestCreate, db: Session = Depends(get_db)):
