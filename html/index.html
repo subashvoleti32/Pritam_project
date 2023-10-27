@@ -54,7 +54,7 @@
       </table>
     <script>
         async function getData() {
-            const res = await fetch('https://localhost:8000/customers/')
+            const res = await fetch('http://localhost:8000/customers/')
             const resJson = await res.json()
             resJson.forEach(j => {
                 var tbodyRef = document.getElementById('myTable')
