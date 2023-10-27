@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Customers | All</title>
+    <title>Staff | All</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </head>
@@ -35,17 +35,15 @@
           </div>
         </div>
       </nav>
-      <h1>All Customers</h1>
+      <h1>All Staff</h1>
     <table class="table">
         <thead>
           <tr>
-            <th scope="col">Customer #</th>
+            <th scope="col">Staff #</th>
             <th scope="col">First</th>
             <th scope="col">Last</th>
-            <th scope="col">EMail</th>
             <th scope="col">ID Number</th>
             <th scope="col">ID Type</th>
-            <th scope="col">DOB</th>
             <th scope="col">Address</th>
           </tr>
         </thead>
@@ -54,19 +52,17 @@
       </table>
     <script>
         async function getData() {
-            const res = await fetch('http://localhost:8000/customers/')
+            const res = await fetch('http://localhost:8000/staff/')
             const resJson = await res.json()
             resJson.forEach(j => {
                 var tbodyRef = document.getElementById('myTable')
                 const row = tbodyRef.insertRow()
-                row.insertCell(0).innerHTML = j.customerid
+                row.insertCell(0).innerHTML = j.staffid
                 row.insertCell(1).innerHTML = j.firstname
                 row.insertCell(2).innerHTML = j.lastname
-                row.insertCell(3).innerHTML = j.email
-                row.insertCell(4).innerHTML = j.idnum
-                row.insertCell(5).innerHTML = j.id_type
-                row.insertCell(6).innerHTML = j.dob
-                row.insertCell(7).innerHTML = j.address
+                row.insertCell(3).innerHTML = j.id_num
+                row.insertCell(4).innerHTML = j.id_type
+                row.insertCell(5).innerHTML = j.address
             })
         }
         getData()
