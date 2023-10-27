@@ -4,8 +4,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Customer,ServiceRequest,Staff,PhoneNumber,Bill
-from schemas import CustomerCreate,CustomerResponse,ServiceRequestCreate,TicketCreate,TicketResponse,ServiceResponse,StaffCreate,StaffResponse,PhoneNumberResponse,BillResponseModel,PhoneNumberCreate,BillCreate
+from schemas import LoginRequest,CustomerCreate,CustomerResponse,ServiceRequestCreate,TicketCreate,TicketResponse,ServiceResponse,StaffCreate,StaffResponse,PhoneNumberResponse,BillResponseModel,PhoneNumberCreate,BillCreate
 from sqlalchemy.orm import joinedload,subqueryload
+from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.templating import Jinja2Templates
+# templates = Jinja2Templates(directory="templates")
 app = FastAPI()
 
 # Dependency to get the SQLAlchemy session
@@ -15,6 +18,45 @@ def get_db():
         yield db
     finally:
         db.close()
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def verify_customer(identifier):
+    db = SessionLocal()
+    customer = db.query(Customer).filter((Customer.customerid == identifier) | (Customer.email == identifier)).first()
+    db.close()
+
+    if not customer:
+        return None  # Customer not found
+    return customer
+
+@app.post("/login", tags=["Authentication"])
+def login(request: LoginRequest):
+    customer = verify_customer(request.random_string)
+    if not customer:
+        raise HTTPException(status_code=401, detail="Authentication failed")
+
+    return {"message": "Logged in successfully"}
+    #return templates.TemplateResponse("index.html", {"request": request, "first_name": "Your return value here"})
+
+
+
+
 #Create Customer      
 @app.post("/customers/", response_model=CustomerResponse,tags=["Customers"])
 def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
@@ -146,6 +188,28 @@ def get_customer_by_id(customer_id: int, db: Session = Depends(get_db)):
                 # Add more customer details as needed
             }
         })
+    return response
+@app.get('/service_requests_by_staff/{staff_id}', tags=["ServiceRequests"])
+async def get_service_requests_by_staff(staff_id: int, db: Session = Depends(get_db)):
+    service_requests = db.query(ServiceRequest).filter(ServiceRequest.staffid == staff_id).options(subqueryload(ServiceRequest.customer))
+    service_requests = service_requests.all()
+    if not service_requests:
+        raise HTTPException(status_code=404, detail=f"No service requests found for the staff with staff_id: {staff_id}")
+    response = {
+        "service_requests": []
+    }
+    for request in service_requests:
+        customer_details = request.customer
+        response["service_requests"].append({
+            "ticketid": request.ticketid,
+            "customer_details": {
+                "customerid": customer_details.customerid,
+                "firstname": customer_details.firstname,
+                "lastname": customer_details.lastname,
+                # Add more customer details as needed
+            }
+        })
+
     return response
 
     # customer_subquery = db.query(Customer).filter(Customer.customerid == customer_id).subquery()
