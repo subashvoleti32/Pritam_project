@@ -65,10 +65,36 @@ def create_service_request(service_request: TicketCreate, db: Session = Depends(
     return db_service_request
 
 #get all customers
+# @app.get('/service_requests/',tags=["ServiceRequests"])
+# async def get_service_requests(db:Session=Depends(get_db)):
+#     res=db.query(ServiceRequest).all()
+#     return res 
+
 @app.get('/service_requests/',tags=["ServiceRequests"])
 async def get_service_requests(db:Session=Depends(get_db)):
-    res=db.query(ServiceRequest).all()
-    return res 
+    service_requests = db.query(ServiceRequest).options(subqueryload(ServiceRequest.customer))
+    service_requests = service_requests.all()
+    if not service_requests:
+        raise HTTPException(status_code=404, detail="No service requests found.")
+    response = {
+        "service_requests": []
+    }
+    for request in service_requests:
+        customer_details = request.customer
+        response["service_requests"].append({
+            "ticketid": request.ticketid,
+            "customer_details": {
+                "customerid": customer_details.customerid,
+                "firstname": customer_details.firstname,
+                "lastname": customer_details.lastname,
+                # Add more customer details as needed
+            }
+        })
+
+    return response
+    #res=db.query(ServiceRequest).all()
+    #return res 
+
 #Get Customer By id
 # @app.get("/service_requests/{customer_id}", tags=["ServiceRequests"])
 # def get_customer_by_id(customer_id: int, db: Session = Depends(get_db)):
@@ -279,10 +305,40 @@ def create_bill(bill: BillResponseModel, db: Session = Depends(get_db)):
     db.refresh(db_bill)
     return db_bill
 #get all staffs
+# @app.get('/bills/',tags=["Bill"])
+# async def get_all_bills(db:Session=Depends(get_db)):
+#     res=db.query(Bill).all()
+#     return res
+
 @app.get('/bills/',tags=["Bill"])
 async def get_all_bills(db:Session=Depends(get_db)):
-    res=db.query(Bill).all()
-    return res
+    bills = db.query(Bill).options(
+        subqueryload(Bill.phone_number).subqueryload(PhoneNumber.customer)
+    ).all()
+    response = []
+    for bill in bills:
+        phone_number = bill.phone_number
+        customer = phone_number.customer if phone_number else None
+
+        bill_data = {
+            "bill_id": bill.billid,
+            "amount": bill.amount,
+            "phone_number": {
+                "phone_number_id": phone_number.phone_number if phone_number else None,
+                "type": phone_number.type if phone_number else None,
+                "plan": phone_number.plan if phone_number else None,
+                "customer_details": {
+                    "customer_id": customer.customerid if customer else None,
+                    "firstname": customer.firstname if customer else None,
+                    "lastname": customer.lastname if customer else None,
+                    # Add more customer details as needed
+                } if customer else None
+            }
+        }
+
+        response.append(bill_data)
+        return response
+
 
 # @app.get("/bills/{bill_id}",tags=["Bill"])
 # def get_bill_by_id(billid: int, db: Session = Depends(get_db)):
