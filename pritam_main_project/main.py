@@ -99,6 +99,7 @@ async def get_service_requests(db:Session=Depends(get_db)):
 #     return response
 ###########################################################################################
 
+
 @app.get("/service_requests/{customer_id}", tags=["ServiceRequests"])
 def get_customer_by_id(customer_id: int, db: Session = Depends(get_db)):
     service_requests = db.query(ServiceRequest).filter(ServiceRequest.customerid == customer_id).options(subqueryload(ServiceRequest.customer))
