@@ -216,6 +216,32 @@ def update_staff(staff_id: int, staff: StaffCreate, db: Session = Depends(get_db
     db.refresh(db_staff)
     return db_staff
 
+
+# @app.get("/staff/{staff_id}", tags=["Staff"])
+# def get_customer_by_id(staff_id: int, db: Session = Depends(get_db)):
+#     staff_requests = db.query(Staff).filter(Staff.staffid == staff_id).options(subqueryload(Staff.service_requests))
+#     staff = staff_requests.first()
+#     if not staff:
+#         raise HTTPException(status_code=404, detail="No service requests found for the provided customer.")
+#     service_request=[]
+#     for request in staff.service_requests:
+#         customer_details = request.customer
+#         service_request.append({
+#             "ticketid": request.ticketid,
+#             "customer_details": {
+#                 "customerid": customer_details.customerid,
+#                 "firstname": customer_details.firstname,
+#                 "lastname": customer_details.lastname,
+#                 # Add more customer details as needed
+#             }
+#         })
+#     response = {
+#         "staff_name": f"{staff.firstname} {staff.lastname}",
+#         "service_requests": service_request
+#     }
+#     return response
+
+
 #delete Customer by id.
 @app.delete("/staff/{staff_id}",tags=["Staff"])
 def delete_customer(staff_id: int, db: Session = Depends(get_db)):
@@ -258,12 +284,63 @@ async def get_all_bills(db:Session=Depends(get_db)):
     res=db.query(Bill).all()
     return res
 
+# @app.get("/bills/{bill_id}",tags=["Bill"])
+# def get_bill_by_id(billid: int, db: Session = Depends(get_db)):
+#     staff = db.query(Bill).filter(Bill.billid == billid).first()
+#     if staff is None:
+#         raise HTTPException(status_code=404, detail="Bill not found")
+#     return staff
+
+
 @app.get("/bills/{bill_id}",tags=["Bill"])
-def get_bill_by_id(billid: int, db: Session = Depends(get_db)):
-    staff = db.query(Bill).filter(Bill.billid == billid).first()
-    if staff is None:
+def get_bill_by_id(bill_id: int, db: Session = Depends(get_db)):
+    bill = db.query(Bill).filter(Bill.billid == bill_id).first()
+    if bill is None:
         raise HTTPException(status_code=404, detail="Bill not found")
-    return staff
+    phone_number = bill.phone_number
+    customer = phone_number.customer if phone_number else None
+    response = {
+        "bill_id": bill.billid,
+        "amount": bill.amount,
+        "phone_number": {
+            "phone_number_id": phone_number.phone_number if phone_number else None,
+            "type": phone_number.type if phone_number else None,
+            "plan": phone_number.plan if phone_number else None,
+            "customer_details": {
+                "customer_id": customer.customerid if customer else None,
+                "firstname": customer.firstname if customer else None,
+                "lastname": customer.lastname if customer else None,
+                # Add more customer details as needed
+            } if customer else None
+        }
+    }
+    return response
+    # bill = db.query(Bill).filter(Bill.billid == bill_id).options(
+    #     subqueryload(Bill.phone_number).subqueryload(PhoneNumber.customer)
+    # ).first()
+    # if bill is None:
+    #     raise HTTPException(status_code=404, detail="Bill not found")
+    # phone_number = bill.phone_number
+    # customer = phone_number.customer
+    # response = {
+    #     "bill_id": bill.billid,
+    #     "amount": bill.amount,
+    #     "phone_number": {
+    #         "phone_number_id": phone_number.phone_number,
+    #         "type": phone_number.type,
+    #         "plan": phone_number.plan,
+    #         "customer_details": {
+    #             "customer_id": customer.customerid,
+    #             "firstname": customer.firstname,
+    #             "lastname": customer.lastname,
+    #             # Add more customer details as needed
+    #         }
+    #     }
+    # }
+    # return response
+
+
+
 @app.delete("/bills/{bill_id}",tags=["Bill"])
 def delete_customer(bill_id: int, db: Session = Depends(get_db)):
     customer = db.query(Bill).filter(Bill.billid== bill_id).delete()
