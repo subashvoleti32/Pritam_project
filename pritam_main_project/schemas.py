@@ -132,3 +132,6 @@ class TicketResponse(BaseModel):
     staffid: int
     ticketstatus: str
     description: str
+
+class LoginRequest(BaseModel):
+    random_string:str      

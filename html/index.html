@@ -35,6 +35,57 @@
           </div>
         </div>
       </nav>
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Add Customer
+      </button>
+      
+      <!-- Modal -->
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Add Customer</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="mb-3">
+                  <label for="first_name" class="form-label">First Name</label>
+                  <input type="text" class="form-control" id="first_name">
+                </div>
+                <div class="mb-3">
+                  <label for="last_name" class="form-label">Last Name</label>
+                  <input type="text" class="form-control" id="last_name">
+                </div>
+                <div class="mb-3">
+                  <label for="id_type" class="form-label">ID Type</label>
+                  <input type="text" class="form-control" id="id_type">
+                </div>
+                <div class="mb-3">
+                  <label for="id_num" class="form-label">ID Number</label>
+                  <input type="text" class="form-control" id="id_num">
+                </div>
+                <div class="mb-3">
+                  <label for="address" class="form-label">Address</label>
+                  <input type="text" class="form-control" id="address">
+                </div>
+                <div class="mb-3">
+                  <label for="dob" class="form-label">DOB</label>
+                  <input type="date" class="form-control" id="dob">
+                </div>
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="email">
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onclick="saveData()">Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <h1>All Customers</h1>
     <table class="table">
         <thead>
@@ -70,6 +121,40 @@
             })
         }
         getData()
+
+        async function saveData() {
+            const first_name = document.getElementById('first_name').value
+            const last_name = document.getElementById('last_name').value
+            const id_type = document.getElementById('id_type').value
+            const id_num = document.getElementById('id_num').value
+            const address = document.getElementById('address').value
+            const dob = document.getElementById('dob').value
+            const email = document.getElementById('email').value
+            // check for empty
+            if (first_name == '' || last_name == '' || id_type == '' || id_num == '' || address == '' || dob == '' || email == '') {
+                alert('Please fill all fields')
+                return
+            }
+            const data = {
+                firstname: first_name,
+                lastname: last_name,
+                id_type: id_type,
+                idnum: id_num,
+                address: address,
+                dob: dob,
+                email: email
+            }
+            const res = await fetch('http://localhost:8000/customers/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            const resJson = await res.json()
+            console.log(resJson)
+            location.reload()
+        }
     </script>
 </body>
 </html>
