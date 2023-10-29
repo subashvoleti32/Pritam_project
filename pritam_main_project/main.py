@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Customer,ServiceRequest,Staff,PhoneNumber,Bill
-from schemas import LoginRequest,CustomerCreate,CustomerResponse,ServiceRequestCreate,TicketCreate,TicketResponse,ServiceResponse,StaffCreate,StaffResponse,PhoneNumberResponse,BillResponseModel,PhoneNumberCreate,BillCreate
+from schemas import LoginRequest,StaffLoginRequest,CustomerCreate,CustomerResponse,ServiceRequestCreate,TicketCreate,TicketResponse,ServiceResponse,StaffCreate,StaffResponse,PhoneNumberResponse,BillResponseModel,PhoneNumberCreate,BillCreate
 from sqlalchemy.orm import joinedload,subqueryload
 from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.templating import Jinja2Templates
@@ -45,6 +45,15 @@ def verify_customer(identifier):
         return None  # Customer not found
     return customer.customerid
 
+def verify_staff(identifier):
+    db = SessionLocal()
+    customer = db.query(Customer).filter((Customer.customerid == identifier) | (Customer.email == identifier)).first()
+    db.close()
+
+    if not customer:
+        return None  # Customer not found
+    return customer.customerid
+
 @app.post("/login", tags=["Authentication"])
 def login(request: LoginRequest):
     customer = verify_customer(request.random_string)
@@ -53,6 +62,15 @@ def login(request: LoginRequest):
 
     return {"customer_id":customer}
     #return templates.TemplateResponse("index.html", {"request": request, "first_name": "Your return value here"})
+
+@app.post("/staff_login", tags=["Authentication"])
+def login(request: StaffLoginRequest,db:Session=Depends(get_db)):
+    staff=db.query(Staff).filter(Staff.staffid == request.id).first()
+
+    if not staff:
+        raise HTTPException(status_code=401, detail="Authentication failed")
+
+    return {"staff_id":staff.staffid}
 
 
 
