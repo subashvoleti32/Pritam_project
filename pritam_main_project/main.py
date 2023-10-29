@@ -361,7 +361,7 @@ async def get_all_staff(db:Session=Depends(get_db)):
 #         raise HTTPException(status_code=404, detail="PhoneNumber not found")
 #     return staff
 
-@app.get("/phone_numbers/{customer_id}", tags=["Bills"])
+@app.get("/phone_numbers/{customer_id}", tags=["PhoneNumber"])
 async def get_customer_bills(customer_id: int, db: Session = Depends(get_db)):
     customer = db.query(Customer).filter(Customer.customerid == customer_id).first()
     if not customer:
@@ -450,7 +450,27 @@ def get_bill_by_id(bill_id: int, db: Session = Depends(get_db)):
             } if customer else None
         }
     }
-    return response
+    return response 
+
+@app.get('/bills/{customer_id}', tags=["Bill"])
+async def get_bills_by_customer(customer_id: int, db: Session = Depends(get_db)):
+    bills = db.query(Bill).join(PhoneNumber).filter(PhoneNumber.customerid == customer_id).options(subqueryload(Bill.phone_number))
+    bills = bills.all()
+
+    customer_bills = []
+    for bill in bills:
+        phone_number = bill.phone_number 
+        customer_bills.append({
+            "bill_id": bill.billid,
+            "amount": bill.amount,
+            "phone_number": {
+                "phone_number_id": phone_number.phone_number,
+                "type": phone_number.type,
+                "plan": phone_number.plan,
+            }
+        })
+
+    return {"customer_bills": customer_bills}
     # bill = db.query(Bill).filter(Bill.billid == bill_id).options(
     #     subqueryload(Bill.phone_number).subqueryload(PhoneNumber.customer)
     # ).first()
