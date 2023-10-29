@@ -130,7 +130,9 @@ async def get_service_requests(db:Session=Depends(get_db)):
                 "firstname": customer_details.firstname,
                 "lastname": customer_details.lastname,
                 # Add more customer details as needed
-            }
+            },
+            "description":request.description,
+            "ticketstatus":request.ticketstatus
         })
 
     return response
@@ -186,7 +188,9 @@ def get_customer_by_id(customer_id: int, db: Session = Depends(get_db)):
                 "firstname": customer_details.firstname,
                 "lastname": customer_details.lastname,
                 # Add more customer details as needed
-            }
+            },
+            "description":request.description,
+            "ticketstatus":request.ticketstatus
         })
     return response
 @app.get('/service_requests_by_staff/{staff_id}', tags=["ServiceRequests"])
@@ -368,13 +372,13 @@ async def get_customer_bills(customer_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"Customer with ID {customer_id} not found.")
     customer_bills = []
     for phone_number in customer.phone_numbers:
-        for bill in phone_number.bills:
-            customer_bills.append({
-                "bill_id": bill.billid,
-                "amount": bill.amount
+        customer_bills.append({
+                "phone_number_id": phone_number.phone_number,
+                "type": phone_number.type,
+                "plan": phone_number.plan
             })
 
-    return {"customer_bills": customer_bills}
+    return {"phone_numbers": customer_bills}
 
 
 @app.post("/bills/", response_model=BillResponseModel,tags=["Bill"])
@@ -452,7 +456,7 @@ def get_bill_by_id(bill_id: int, db: Session = Depends(get_db)):
     }
     return response 
 
-@app.get('/bills/{customer_id}', tags=["Bill"])
+@app.get('/bill/{customer_id}', tags=["Bill"])
 async def get_bills_by_customer(customer_id: int, db: Session = Depends(get_db)):
     bills = db.query(Bill).join(PhoneNumber).filter(PhoneNumber.customerid == customer_id).options(subqueryload(Bill.phone_number))
     bills = bills.all()
