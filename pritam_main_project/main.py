@@ -43,7 +43,7 @@ def verify_customer(identifier):
 
     if not customer:
         return None  # Customer not found
-    return customer
+    return customer.customerid
 
 @app.post("/login", tags=["Authentication"])
 def login(request: LoginRequest):
@@ -51,7 +51,7 @@ def login(request: LoginRequest):
     if not customer:
         raise HTTPException(status_code=401, detail="Authentication failed")
 
-    return {"message": "Logged in successfully"}
+    return customer
     #return templates.TemplateResponse("index.html", {"request": request, "first_name": "Your return value here"})
 
 
@@ -280,6 +280,7 @@ def create_staff(staff: StaffCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_staff)
     return db_staff
+
 
 
 #get all staffs
