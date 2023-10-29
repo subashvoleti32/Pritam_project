@@ -354,12 +354,27 @@ def create_phone_number(phone_number: PhoneNumberResponse, db: Session = Depends
 async def get_all_staff(db:Session=Depends(get_db)):
     res=db.query(PhoneNumber).all()
     return res
-@app.get("/phone_numbers/{customer_id}",tags=["Staff"])
-def get_staff_by_id(customerid: int, db: Session = Depends(get_db)):
-    staff = db.query(PhoneNumber).filter(PhoneNumber.customer == customerid).first()
-    if staff is None:
-        raise HTTPException(status_code=404, detail="PhoneNumber not found")
-    return staff
+# @app.get("/phone_numbers/{customer_id}",tags=["Staff"])
+# def get_staff_by_id(customerid: int, db: Session = Depends(get_db)):
+#     staff = db.query(PhoneNumber).filter(PhoneNumber.customer == customerid).first()
+#     if staff is None:
+#         raise HTTPException(status_code=404, detail="PhoneNumber not found")
+#     return staff
+
+@app.get("/phone_numbers/{customer_id}", tags=["Bills"])
+async def get_customer_bills(customer_id: int, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.customerid == customer_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail=f"Customer with ID {customer_id} not found.")
+    customer_bills = []
+    for phone_number in customer.phone_numbers:
+        for bill in phone_number.bills:
+            customer_bills.append({
+                "bill_id": bill.billid,
+                "amount": bill.amount
+            })
+
+    return {"customer_bills": customer_bills}
 
 
 @app.post("/bills/", response_model=BillResponseModel,tags=["Bill"])
