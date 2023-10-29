@@ -51,7 +51,7 @@ def login(request: LoginRequest):
     if not customer:
         raise HTTPException(status_code=401, detail="Authentication failed")
 
-    return customer
+    return {"customer_id":customer}
     #return templates.TemplateResponse("index.html", {"request": request, "first_name": "Your return value here"})
 
 
