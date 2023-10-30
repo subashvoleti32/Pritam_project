@@ -118,20 +118,20 @@ class Bill(BillBase):
         orm_mode = True
 
 class TicketCreate(BaseModel):
-    ticketid:int
     phone_number: int
     customerid: int
-    staffid: int
-    ticketstatus: str
     description: str
 
 class TicketResponse(BaseModel):
-    ticketid:int
+    ticketid:int|None
     phone_number: int
     customerid: int
-    staffid: int
-    ticketstatus: str
+    staffid: int|None
+    ticketstatus: str|None
     description: str
 
 class LoginRequest(BaseModel):
     random_string:str      
+
+class StaffLoginRequest(BaseModel):
+    id:int
