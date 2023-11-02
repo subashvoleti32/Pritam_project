@@ -1,139 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Staff | All</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Staff | All</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    </head>
+    <body>
         <div class="container-fluid">
-          <a class="navbar-brand" href="#">CRM</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-              <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="index.html">Customers</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link active" href="staff.html">Staff</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="svc_req.html">Service Requests</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="phno.html">Phone Numbers</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="bills.html">Bills</a>
-              </li>
-            </ul>
-          </div>
+            <h3>Welcome
+                <span id="staff_name"></span>
+            </h3>
+            <div class="row p-2">
+                <h3 class="col-8">Service Requests</h3>
+            </div>
+            <table class="table table-bordered">
+                <tr>
+                    <th>Service Request ID</th>
+                    <th>Service Request Type</th>
+                    <th>Service Request Status</th>
+                </tr>
+                <tbody id="svc-body"></tbody>
+            </table>
         </div>
-      </nav>
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        Add Staff
-      </button>
-      
-      <!-- Modal -->
-      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">Add Customer</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <form>
-                <div class="mb-3">
-                  <label for="first_name" class="form-label">First Name</label>
-                  <input type="text" class="form-control" id="first_name">
-                </div>
-                <div class="mb-3">
-                  <label for="last_name" class="form-label">Last Name</label>
-                  <input type="text" class="form-control" id="last_name">
-                </div>
-                <div class="mb-3">
-                  <label for="id_type" class="form-label">ID Type</label>
-                  <input type="text" class="form-control" id="id_type">
-                </div>
-                <div class="mb-3">
-                  <label for="id_num" class="form-label">ID Number</label>
-                  <input type="text" class="form-control" id="id_num">
-                </div>
-                <div class="mb-3">
-                  <label for="address" class="form-label">Address</label>
-                  <input type="text" class="form-control" id="address">
-                </div>
-              </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" onclick="saveData()">Save changes</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <h1>All Staff</h1>
-    <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Staff #</th>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">ID Number</th>
-            <th scope="col">ID Type</th>
-            <th scope="col">Address</th>
-          </tr>
-        </thead>
-        <tbody id='myTable'>
-        </tbody>
-      </table>
-    <script>
-        async function getData() {
-            const res = await fetch('http://localhost:8000/staff/')
-            const resJson = await res.json()
-            resJson.forEach(j => {
-                var tbodyRef = document.getElementById('myTable')
-                const row = tbodyRef.insertRow()
-                row.insertCell(0).innerHTML = j.staffid
-                row.insertCell(1).innerHTML = j.firstname
-                row.insertCell(2).innerHTML = j.lastname
-                row.insertCell(3).innerHTML = j.id_num
-                row.insertCell(4).innerHTML = j.id_type
-                row.insertCell(5).innerHTML = j.address
-            })
-        }
-        getData()
-
-        async function saveData() {
-            const first_name = document.getElementById('first_name').value
-            const last_name = document.getElementById('last_name').value
-            const id_type = document.getElementById('id_type').value
-            const id_num = document.getElementById('id_num').value
-            const address = document.getElementById('address').value
-            const data = {
-                firstname: first_name,
-                lastname: last_name,
-                id_type: id_type,
-                id_num: id_num,
-                address: address
+        <script>
+            if (localStorage.getItem("staffid") == null) {
+                window.location.href = "/login_staff.html";
             }
-            const res = await fetch('http://localhost:8000/staff/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            const resJson = await res.json()
-            console.log(resJson)
-            location.reload()
-        }
-    </script>
-</body>
+            async function getData() {
+                const res1 = await fetch(`http://localhost:8000/staff/${
+                    localStorage.getItem("staffid")
+                }`);
+                const data = await res1.json();
+                console.log(data);
+                document.getElementById("staff_name").innerHTML = data.firstname + " " + data.lastname;
+                const res = await fetch('http://localhost:8000/service_requests_by_staff/' + localStorage.getItem("staffid") + '/')
+                const resJson = await res.json()
+                var svc_body = document.getElementById("svc-body");
+                for (var i = 0; i < resJson.service_requests.length; i++) {
+                    var row = svc_body.insertRow();
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    cell1.innerHTML = dataSvc.service_requests[i] ?. ticketid;
+                    cell2.innerHTML = dataSvc.service_requests[i] ?. description;
+                    cell3.innerHTML = dataSvc.service_requests[i] ?. ticketstatus;
+                }
+            }
+            getData()
+        </script>
+    </body>
 </html>

@@ -102,8 +102,8 @@ class BillBase(BaseModel):
 class BillResponseModel(BaseModel):
     amount:int
     customerid:int
-    paymentid:int
-    billid:int
+    # paymentid:int
+    # billid:int
     
 
 class BillCreate(BillBase):

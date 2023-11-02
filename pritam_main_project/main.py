@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from database import SessionLocal
@@ -116,13 +116,38 @@ def delete_customer(customer_id: int, db: Session = Depends(get_db)):
     return {f"Customer id {customer_id} is deleted successfully"}
 
 # Create
-@app.post("/service_requests/", response_model=TicketResponse,tags=["ServiceRequests"])
+# @app.post("/service_requests/", response_model=TicketResponse,tags=["ServiceRequests"])
+# def create_service_request(service_request: TicketCreate, db: Session = Depends(get_db)):
+#     db_service_request = ServiceRequest(**service_request.dict())
+#     db.add(db_service_request)
+#     db.commit()
+#     db.refresh(db_service_request)
+#     return db_service_request
+
+import random  # Import the random module to generate a random staffid
+
+@app.post("/service_requests/", response_model=TicketResponse, tags=["ServiceRequests"])
 def create_service_request(service_request: TicketCreate, db: Session = Depends(get_db)):
-    db_service_request = ServiceRequest(**service_request.dict())
+    # Fetch a random staffid from the staff table
+    staff_ids = db.query(Staff.staffid).all()
+    if not staff_ids:
+        raise HTTPException(status_code=404, detail="No staff members found")
+    random_staff_id = random.choice(staff_ids)[0]
+
+    # Create a ServiceRequest object with the provided data and the random staffid
+    db_service_request = ServiceRequest(
+        phone_number=service_request.phone_number,
+        customerid=service_request.customerid,
+        description=service_request.description,
+        staffid=random_staff_id
+    )
+
     db.add(db_service_request)
     db.commit()
     db.refresh(db_service_request)
+
     return db_service_request
+
 
 #get all customers
 # @app.get('/service_requests/',tags=["ServiceRequests"])
@@ -311,12 +336,99 @@ async def get_all_staff(db:Session=Depends(get_db)):
     res=db.query(Staff).all()
     return res 
 
-@app.get("/staff/{staff_id}",tags=["Staff"])
+# @app.get("/staff/{staff_id}",tags=["Staff"])
+# def get_staff_by_id(staff_id: int, db: Session = Depends(get_db)):
+#     staff = db.query(Staff).filter(Staff.staffid == staff_id).first()
+#     if staff is None:
+#         raise HTTPException(status_code=404, detail="Staff not found")
+#     return staff
+# @app.get("/staff/{staff_id}", tags=["Staff"])
+# def get_staff_by_id(staff_id: int, db: Session = Depends(get_db)):
+#     staff = db.query(Staff).filter(Staff.staffid == staff_id).first()
+#     if staff is None:
+#         raise HTTPException(status_code=404, detail="Staff not found")
+
+# @app.get("/staff/{staff_id}", tags=["Staff"])
+# def get_staff_by_id(staff_id: int, db: Session = Depends(get_db)):
+#     staff = db.query(Staff).filter(Staff.staffid == staff_id).first()
+#     if staff is None:
+#         raise HTTPException(status_code=404, detail="Staff not found")
+
+#     # Get the count of service requests for the staff member
+#     service_requests = db.query(ServiceRequest).filter(ServiceRequest.staffid == staff_id).all()
+
+#     # Create a response dictionary
+#     response = {
+#         "staff_id": staff.staffid,
+#         "first_name": staff.firstname,
+#         "last_name": staff.lastname,
+#         "service_request_count": len(service_requests),
+#         "service_requests": []
+#     }
+
+#     for request in service_requests:
+#         response["service_requests"].append({
+#             "ticketid": request.ticketid,
+#             "ticketstatus": request.ticketstatus,
+#             "description": request.description,
+#             # Include additional service request details as needed
+#         })
+
+#     return response
+
+
+@app.get("/staff/{staff_id}", tags=["Staff"])
 def get_staff_by_id(staff_id: int, db: Session = Depends(get_db)):
     staff = db.query(Staff).filter(Staff.staffid == staff_id).first()
     if staff is None:
         raise HTTPException(status_code=404, detail="Staff not found")
-    return staff
+
+    # Get the count of service requests for the staff member
+    service_requests = db.query(ServiceRequest).filter(ServiceRequest.staffid == staff_id).all()
+
+    # Create a response dictionary
+    response = {
+        "staff_id": staff.staffid,
+        "first_name": staff.firstname,
+        "last_name": staff.lastname,
+        "service_request_count": len(service_requests),
+        "service_requests": []
+    }
+
+    for request in service_requests:
+        customer = request.customer  # Get the associated customer
+        response["service_requests"].append({
+            "ticketid": request.ticketid,
+            "ticketstatus": request.ticketstatus,
+            "description": request.description,
+            "customer_id": customer.customerid,  # Include customer ID
+            "customer_first_name": customer.firstname  # Include customer first name
+            # Include additional service request details as needed
+        })
+
+    return response
+
+
+
+
+
+
+
+
+
+    # Get the count of service requests for the staff member
+    service_request_count = db.query(func.count(ServiceRequest.ticketid)).filter(ServiceRequest.staffid == staff_id).scalar()
+
+    # Create a response dictionary
+    response = {
+        "staff_id": staff.staffid,
+        "first_name": staff.firstname,
+        "last_name": staff.lastname,
+        "service_request_count": service_request_count,
+    }
+
+    return response
+
 
 @app.put("/staff/{staff_id}", response_model=StaffCreate,tags=["Staff"])
 def update_staff(staff_id: int, staff: StaffCreate, db: Session = Depends(get_db)):
@@ -401,7 +513,14 @@ async def get_customer_bills(customer_id: int, db: Session = Depends(get_db)):
 
 @app.post("/bills/", response_model=BillResponseModel,tags=["Bill"])
 def create_bill(bill: BillResponseModel, db: Session = Depends(get_db)):
-    db_bill = Bill(**bill.dict())
+    random_billid = random.randint(1, 10)
+    random_paymentid = random.randint(1001, 2000)
+    db_bill = Bill(
+        amount=bill.amount,
+        customerid=bill.customerid,
+        paymentid=random_paymentid,
+        billid=random_billid
+    )
     db.add(db_bill)
     db.commit()
     db.refresh(db_bill)
@@ -440,7 +559,10 @@ async def get_all_bills(db:Session=Depends(get_db)):
 
         response.append(bill_data)
         return response
-
+@app.get("/bills_all/",tags=["Bill"])
+async def get_all_bills(db:Session=Depends(get_db)):
+    all_bills=db.query(Bill).all()
+    return all_bills
 
 # @app.get("/bills/{bill_id}",tags=["Bill"])
 # def get_bill_by_id(billid: int, db: Session = Depends(get_db)):
